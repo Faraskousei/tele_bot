@@ -22,32 +22,46 @@ export const processBusinessFeatures = {
   },
 
   async handleShopCallback(chatId: number, userId: number, action: string, params: string[]) {
-    switch (action) {
-      case 'products':
-        await processBusinessFeatures.showProducts(chatId, userId);
-        break;
-      
-      case 'cart':
-        await processBusinessFeatures.showCart(chatId, userId);
-        break;
-      
-      case 'orders':
-        await processBusinessFeatures.showOrders(chatId, userId);
-        break;
-      
-      case 'checkout':
-        await processBusinessFeatures.processCheckout(chatId, userId);
-        break;
-      
-      case 'add_to_cart':
-        const productId = params[0];
-        await processBusinessFeatures.addToCart(chatId, userId, productId);
-        break;
-      
-      case 'remove_from_cart':
-        const removeId = params[0];
-        await processBusinessFeatures.removeFromCart(chatId, userId, removeId);
-        break;
+    console.log('🛍️ Handling shop callback:', { chatId, userId, action, params });
+    
+    try {
+      switch (action) {
+        case 'products':
+          await processBusinessFeatures.showProducts(chatId, userId);
+          break;
+        
+        case 'cart':
+          await processBusinessFeatures.showCart(chatId, userId);
+          break;
+        
+        case 'orders':
+          await processBusinessFeatures.showOrders(chatId, userId);
+          break;
+        
+        case 'checkout':
+          await processBusinessFeatures.processCheckout(chatId, userId);
+          break;
+        
+        case 'add_to_cart':
+          const productId = params[0];
+          await processBusinessFeatures.addToCart(chatId, userId, productId);
+          break;
+        
+        case 'remove_from_cart':
+          const removeId = params[0];
+          await processBusinessFeatures.removeFromCart(chatId, userId, removeId);
+          break;
+        
+        case 'back_to_shop':
+          await processBusinessFeatures.handleShopCommand(chatId, userId);
+          break;
+        
+        default:
+          await sendMessage(chatId, '❌ Aksi tidak dikenali. Silakan pilih menu yang tersedia.');
+      }
+    } catch (error) {
+      console.error('❌ Error in handleShopCallback:', error);
+      await sendMessage(chatId, '❌ Terjadi kesalahan. Silakan coba lagi.');
     }
   },
 
@@ -99,12 +113,20 @@ export const processBusinessFeatures = {
     });
 
     const keyboard = {
-      inline_keyboard: products.map(product => [
-        {
-          text: `🛒 ${product.name} - Rp ${product.price.toLocaleString('id-ID')}`,
-          callback_data: `shop:add_to_cart:${product.id}`
-        }
-      ])
+      inline_keyboard: [
+        ...products.map(product => [
+          {
+            text: `🛒 ${product.name} - Rp ${product.price.toLocaleString('id-ID')}`,
+            callback_data: `shop:add_to_cart:${product.id}`
+          }
+        ]),
+        [
+          {
+            text: '🔙 Kembali ke Menu Utama',
+            callback_data: 'shop:back_to_shop'
+          }
+        ]
+      ]
     };
 
     await sendMessage(chatId, productsText, { reply_markup: keyboard });
@@ -172,6 +194,9 @@ export const processBusinessFeatures = {
           [
             { text: '💳 Checkout', callback_data: 'shop:checkout' },
             { text: '🛍️ Lanjut Belanja', callback_data: 'shop:products' }
+          ],
+          [
+            { text: '🔙 Kembali ke Menu Utama', callback_data: 'shop:back_to_shop' }
           ]
         ]
       };

@@ -39,5 +39,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json({ message: 'Telegram webhook endpoint' });
+  return NextResponse.json({ 
+    message: 'Telegram webhook endpoint',
+    status: 'active',
+    timestamp: new Date().toISOString(),
+    domain: process.env.NEXT_PUBLIC_APP_URL || 'localhost'
+  });
 }

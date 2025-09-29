@@ -1,10 +1,28 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "TELEGRAM_BOT_TOKEN": "8311046872:AAFJz-zTPe4X49YWyibejV4-ydDYl_jPdMw",
+    "TELEGRAM_WEBHOOK_URL": "https://grambotele.vercel.app/api/telegram/webhook",
+    "NEXT_PUBLIC_FIREBASE_API_KEY": "AIzaSyDO9QTPwSLc7YEyEu-vkAewptzRVcWdF78",
+    "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "db-ind-b9d1c.firebaseapp.com",
+    "NEXT_PUBLIC_FIREBASE_PROJECT_ID": "db-ind-b9d1c",
+    "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET": "db-ind-b9d1c.firebasestorage.app",
+    "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "142941537714",
+    "NEXT_PUBLIC_FIREBASE_APP_ID": "1:142941537714:web:fbb4f4d18715688e8550ab",
+    "TMDB_API_KEY": "db10591f98182b1ca805e5ee581d820c",
+    "TMDB_READ_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkYjEwNTkxZjI4MTgyYjFjYWI4MDVlNWU1ODEwZDBjIiwic3ViIjoiNjMTc1OTExOTc2MjMyNTIsImlzcyI6InNlY3VyZSIsImV4cCI6MTcwOTYyOTBhNjJkZWMyMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uOjF9.l9FbbJ6xmaGJ2EHW39QkDuMASTH8s5kwVtO0wcXffzk",
+    "NODE_ENV": "production",
+    "NEXT_PUBLIC_APP_URL": "https://grambotele.vercel.app"
+  },
   "functions": {
     "src/app/api/telegram/webhook/route.ts": {
       "maxDuration": 30
     }
-  },
-  "env": {
-    "TELEGRAM_BOT_TOKEN": "8311046872:AAFJz-zTPe4X49YWyibejV4-ydDYl_jPdMw"
   }
 }

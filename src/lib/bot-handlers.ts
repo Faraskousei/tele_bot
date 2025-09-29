@@ -87,33 +87,67 @@ async function handleMessage(message: any) {
 }
 
 async function handleCallbackQuery(callbackQuery: any) {
-  const chatId = callbackQuery.message.chat.id;
-  const userId = callbackQuery.from.id;
-  const data = callbackQuery.data;
+  try {
+    const chatId = callbackQuery.message.chat.id;
+    const userId = callbackQuery.from.id;
+    const data = callbackQuery.data;
 
-  await answerCallbackQuery(callbackQuery.id);
+    console.log('🔘 Handling callback query:', { chatId, userId, data });
 
-  // Process callback data
-  const [feature, action, ...params] = data.split(':');
-  
-  switch (feature) {
-    case 'todo':
-      await processManagementFeatures.handleTodoCallback(chatId, userId, action, params);
-      break;
-    case 'expense':
-      await processManagementFeatures.handleExpenseCallback(chatId, userId, action, params);
-      break;
-    case 'quiz':
-      await processEducationFeatures.handleQuizCallback(chatId, userId, action, params);
-      break;
-    case 'movie':
-      await processEntertainmentFeatures.handleMovieCallback(chatId, userId, action, params);
-      break;
-    case 'game':
-      await processEntertainmentFeatures.handleGameCallback(chatId, userId, action, params);
-      break;
-    default:
-      await sendMessage(chatId, 'Fitur belum tersedia.');
+    // Answer callback query first
+    await answerCallbackQuery(callbackQuery.id);
+
+    // Process callback data
+    const [feature, action, ...params] = data.split(':');
+    
+    console.log('🔍 Parsed callback:', { feature, action, params });
+
+    // Update user session with current state
+    await updateUserSession(userId, chatId, `waiting_for_${feature}_${action}`, { 
+      feature, 
+      action, 
+      params,
+      lastCallback: data,
+      timestamp: new Date()
+    });
+
+    switch (feature) {
+      case 'todo':
+        await processManagementFeatures.handleTodoCallback(chatId, userId, action, params);
+        break;
+      case 'expense':
+        await processManagementFeatures.handleExpenseCallback(chatId, userId, action, params);
+        break;
+      case 'quiz':
+        await processEducationFeatures.handleQuizCallback(chatId, userId, action, params);
+        break;
+      case 'movie':
+        await processEntertainmentFeatures.handleMovieCallback(chatId, userId, action, params);
+        break;
+      case 'game':
+        await processEntertainmentFeatures.handleGameCallback(chatId, userId, action, params);
+        break;
+      case 'shop':
+        await processBusinessFeatures.handleShopCallback(chatId, userId, action, params);
+        break;
+      case 'monitor':
+        await processTechnicalFeatures.handleMonitorCallback(chatId, userId, action, params);
+        break;
+      case 'main':
+        if (action === 'menu') {
+          await sendWelcomeMessage(chatId);
+        } else if (action === 'help') {
+          await sendHelpMessage(chatId);
+        }
+        break;
+      case 'category':
+        await handleCategorySelection(chatId, userId, action);
+        break;
+      default:
+        await sendMessage(chatId, 'Fitur belum tersedia.');
+    }
+  } catch (error) {
+    console.error('❌ Error handling callback query:', error);
   }
 }
 
@@ -157,23 +191,47 @@ async function handleCommand(chatId: number, userId: number, text: string, sessi
 }
 
 async function handleRegularMessage(chatId: number, userId: number, text: string, session: BotSession | null) {
+  console.log('💭 Processing regular message:', { chatId, userId, text, sessionState: session?.state });
+  
   // Process based on current state if session exists
-  if (session) {
+  if (session && session.state) {
+    console.log('🔄 Processing based on session state:', session.state);
+    
     switch (session.state) {
       case 'waiting_for_todo':
         await processManagementFeatures.addTodo(chatId, userId, text);
+        // Clear session after processing
+        await updateUserSession(userId, chatId, 'idle', {});
         return;
       case 'waiting_for_expense':
         await processManagementFeatures.addExpense(chatId, userId, text);
+        // Clear session after processing
+        await updateUserSession(userId, chatId, 'idle', {});
         return;
       case 'waiting_for_quiz_answer':
         await processEducationFeatures.answerQuiz(chatId, userId, text);
+        // Clear session after processing
+        await updateUserSession(userId, chatId, 'idle', {});
         return;
       case 'waiting_for_guess':
         await processEntertainmentFeatures.checkGuess(chatId, userId, parseInt(text));
+        // Clear session after processing
+        await updateUserSession(userId, chatId, 'idle', {});
         return;
       case 'waiting_for_trivia_answer':
         await processEntertainmentFeatures.checkTriviaAnswer(chatId, userId, parseInt(text));
+        // Clear session after processing
+        await updateUserSession(userId, chatId, 'idle', {});
+        return;
+      case 'waiting_for_movie_search':
+        await processEntertainmentFeatures.searchMovie(chatId, userId, text);
+        // Clear session after processing
+        await updateUserSession(userId, chatId, 'idle', {});
+        return;
+      case 'waiting_for_translate':
+        await processEducationFeatures.translateText(chatId, userId, text);
+        // Clear session after processing
+        await updateUserSession(userId, chatId, 'idle', {});
         return;
     }
   }
@@ -186,6 +244,12 @@ async function handleRegularMessage(chatId: number, userId: number, text: string
 
 async function handleRealTimeReply(chatId: number, userId: number, text: string) {
   try {
+    // Validate inputs
+    if (!chatId || !userId || !text) {
+      console.error('❌ Invalid parameters for handleRealTimeReply:', { chatId, userId, text });
+      return;
+    }
+
     const lowerText = text.toLowerCase();
     
     // Greetings detection
@@ -283,40 +347,122 @@ async function handleRealTimeReply(chatId: number, userId: number, text: string)
 }
 
 async function sendWelcomeMessage(chatId: number) {
-  const welcomeText = `
-🤖 Selamat datang di Bot Platform!
+  const welcomeText = `🤖 **Selamat datang di Bot Platform!**
 
-Saya adalah bot multi-fungsi yang dapat membantu Anda dengan berbagai tugas:
+Saya adalah bot multi-fungsi yang dapat membantu Anda dengan berbagai tugas. Pilih kategori yang Anda butuhkan:`;
 
-📚 **Pendidikan & Pembelajaran**
-• Kamus/Translate: /translate <teks>
-• Quiz & Latihan: /quiz
-• Catatan Pribadi: /notes
+  const keyboard = {
+    inline_keyboard: [
+      [
+        { text: '📚 Pendidikan', callback_data: 'category:education' },
+        { text: '📋 Manajemen', callback_data: 'category:management' }
+      ],
+      [
+        { text: '🎮 Hiburan', callback_data: 'category:entertainment' },
+        { text: '💼 Bisnis', callback_data: 'category:business' }
+      ],
+      [
+        { text: '⚙️ Teknis', callback_data: 'category:technical' },
+        { text: '❓ Bantuan', callback_data: 'main:help' }
+      ]
+    ]
+  };
 
-📋 **Manajemen & Produktivitas**
-• To-Do List: /todo
-• Tracking Pengeluaran: /expense
-• Manajemen Grup: /group
+  await sendMessage(chatId, welcomeText, { reply_markup: keyboard });
+}
 
-🎮 **Hiburan**
-• Game Sederhana: /game
-• Info Film/Music: /movie
-• Generator Meme: /meme
-
-💼 **Bisnis & Layanan**
-• E-commerce: /shop
-• Reservasi: /booking
-• Customer Support: /support
-
-⚙️ **Teknis & Developer**
-• GitHub Notifier: /github
-• Server Monitor: /monitor
-• AI Assistant: /ai
-
-Ketik /help untuk melihat daftar lengkap perintah.
-  `;
-
-  await sendMessage(chatId, welcomeText);
+async function handleCategorySelection(chatId: number, userId: number, category: string) {
+  console.log('📂 Handling category selection:', { chatId, userId, category });
+  
+  switch (category) {
+    case 'education':
+      await sendMessage(chatId, '📚 **Kategori Pendidikan**\n\nPilih fitur yang Anda butuhkan:', {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '🌐 Translate', callback_data: 'education:translate' },
+              { text: '🧠 Quiz', callback_data: 'education:quiz' }
+            ],
+            [
+              { text: '📝 Notes', callback_data: 'education:notes' },
+              { text: '🔙 Kembali', callback_data: 'main:menu' }
+            ]
+          ]
+        }
+      });
+      break;
+    
+    case 'management':
+      await sendMessage(chatId, '📋 **Kategori Manajemen**\n\nPilih fitur yang Anda butuhkan:', {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '📝 To-Do List', callback_data: 'todo:menu' },
+              { text: '💰 Expense', callback_data: 'expense:menu' }
+            ],
+            [
+              { text: '👥 Group', callback_data: 'group:menu' },
+              { text: '🔙 Kembali', callback_data: 'main:menu' }
+            ]
+          ]
+        }
+      });
+      break;
+    
+    case 'entertainment':
+      await sendMessage(chatId, '🎮 **Kategori Hiburan**\n\nPilih fitur yang Anda butuhkan:', {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '🎮 Game', callback_data: 'game:menu' },
+              { text: '🎬 Movie', callback_data: 'movie:menu' }
+            ],
+            [
+              { text: '😄 Meme', callback_data: 'meme:menu' },
+              { text: '🔙 Kembali', callback_data: 'main:menu' }
+            ]
+          ]
+        }
+      });
+      break;
+    
+    case 'business':
+      await sendMessage(chatId, '💼 **Kategori Bisnis**\n\nPilih fitur yang Anda butuhkan:', {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '🛍️ Shop', callback_data: 'shop:menu' },
+              { text: '📅 Booking', callback_data: 'booking:menu' }
+            ],
+            [
+              { text: '🎧 Support', callback_data: 'support:menu' },
+              { text: '🔙 Kembali', callback_data: 'main:menu' }
+            ]
+          ]
+        }
+      });
+      break;
+    
+    case 'technical':
+      await sendMessage(chatId, '⚙️ **Kategori Teknis**\n\nPilih fitur yang Anda butuhkan:', {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '📊 Monitor', callback_data: 'monitor:menu' },
+              { text: '🤖 AI Assistant', callback_data: 'ai:menu' }
+            ],
+            [
+              { text: '🔧 GitHub', callback_data: 'github:menu' },
+              { text: '🔙 Kembali', callback_data: 'main:menu' }
+            ]
+          ]
+        }
+      });
+      break;
+    
+    default:
+      await sendMessage(chatId, '❌ Kategori tidak dikenali.');
+  }
 }
 
 async function sendHelpMessage(chatId: number) {

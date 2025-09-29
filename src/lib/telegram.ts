@@ -26,21 +26,43 @@ export const initializeBot = async () => {
 export const sendMessage = async (chatId: number | string, text: string, options?: TelegramBot.SendMessageOptions) => {
   try {
     const botInstance = getBot();
-    if (botInstance) {
-      // Validate chatId
-      if (!chatId || chatId === 0) {
-        console.error('❌ Invalid chatId:', chatId);
-        return null;
-      }
-      
-      console.log('📤 Sending message:', { chatId, text: text.substring(0, 100), options });
-      const result = await botInstance.sendMessage(chatId, text, options);
-      console.log('✅ Message sent successfully:', result.message_id);
-      return result;
+    if (!botInstance) {
+      console.error('❌ Bot not initialized');
+      return null;
     }
-    throw new Error('Bot not initialized');
-  } catch (error) {
+
+    // Validate chatId
+    if (!chatId || chatId === 0 || chatId === '0') {
+      console.error('❌ Invalid chatId:', chatId);
+      return null;
+    }
+
+    // Convert to number if string
+    const numericChatId = typeof chatId === 'string' ? parseInt(chatId) : chatId;
+    if (isNaN(numericChatId)) {
+      console.error('❌ Invalid numeric chatId:', chatId);
+      return null;
+    }
+    
+    console.log('📤 Sending message:', { chatId: numericChatId, text: text.substring(0, 100), options });
+    
+    const result = await botInstance.sendMessage(numericChatId, text, options);
+    console.log('✅ Message sent successfully:', result.message_id);
+    return result;
+  } catch (error: any) {
     console.error('❌ Error sending message:', error);
+    
+    // Handle specific Telegram errors
+    if (error.code === 'ETELEGRAM') {
+      if (error.response?.body?.error_code === 400) {
+        console.error('❌ Bad Request - Chat not found or invalid:', chatId);
+      } else if (error.response?.body?.error_code === 403) {
+        console.error('❌ Forbidden - Bot blocked by user:', chatId);
+      } else {
+        console.error('❌ Telegram API error:', error.response?.body?.description);
+      }
+    }
+    
     // Don't throw error to prevent webhook failure
     return null;
   }
