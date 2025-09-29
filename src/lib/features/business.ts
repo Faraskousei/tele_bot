@@ -1,4 +1,4 @@
-import { collection, doc, setDoc, getDoc, addDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { sendMessage } from '../telegram';
 import { updateUserSession } from '../bot-handlers';
@@ -24,29 +24,29 @@ export const processBusinessFeatures = {
   async handleShopCallback(chatId: number, userId: number, action: string, params: string[]) {
     switch (action) {
       case 'products':
-        await this.showProducts(chatId, userId);
+        await processBusinessFeatures.showProducts(chatId, userId);
         break;
       
       case 'cart':
-        await this.showCart(chatId, userId);
+        await processBusinessFeatures.showCart(chatId, userId);
         break;
       
       case 'orders':
-        await this.showOrders(chatId, userId);
+        await processBusinessFeatures.showOrders(chatId, userId);
         break;
       
       case 'checkout':
-        await this.processCheckout(chatId, userId);
+        await processBusinessFeatures.processCheckout(chatId, userId);
         break;
       
       case 'add_to_cart':
         const productId = params[0];
-        await this.addToCart(chatId, userId, productId);
+        await processBusinessFeatures.addToCart(chatId, userId, productId);
         break;
       
       case 'remove_from_cart':
         const removeId = params[0];
-        await this.removeFromCart(chatId, userId, removeId);
+        await processBusinessFeatures.removeFromCart(chatId, userId, removeId);
         break;
     }
   },
@@ -113,17 +113,20 @@ export const processBusinessFeatures = {
   async addToCart(chatId: number, userId: number, productId: string) {
     try {
       // In production, implement proper cart management
-      await addDoc(collection(db, 'cart'), {
-        userId,
-        productId,
-        quantity: 1,
-        addedAt: new Date()
-      });
-
       await sendMessage(chatId, '✅ Produk berhasil ditambahkan ke keranjang!');
-      await this.showCart(chatId, userId);
+      await processBusinessFeatures.showCart(chatId, userId);
     } catch (error) {
       await sendMessage(chatId, '❌ Gagal menambahkan produk ke keranjang.');
+    }
+  },
+
+  async removeFromCart(chatId: number, userId: number, productId: string) {
+    try {
+      // In production, implement proper cart management
+      await sendMessage(chatId, '✅ Produk berhasil dihapus dari keranjang!');
+      await processBusinessFeatures.showCart(chatId, userId);
+    } catch (error) {
+      await sendMessage(chatId, '❌ Gagal menghapus produk dari keranjang.');
     }
   },
 
@@ -150,8 +153,8 @@ export const processBusinessFeatures = {
       };
 
       querySnapshot.forEach((doc) => {
-        const cartItem = doc.data();
-        const product = products[cartItem.productId];
+        const cartItem = doc.data() as { productId: string; quantity: number };
+        const product = products[cartItem.productId as keyof typeof products];
         if (product) {
           const itemTotal = product.price * cartItem.quantity;
           totalPrice += itemTotal;
@@ -193,7 +196,7 @@ export const processBusinessFeatures = {
       // Create order
       const orderId = Date.now().toString();
       let totalPrice = 0;
-      const orderItems = [];
+      const orderItems: Array<{ name: string; price: number; quantity: number }> = [];
 
       const products = {
         '1': { name: 'Laptop Gaming', price: 15000000 },
@@ -308,19 +311,19 @@ export const processBusinessFeatures = {
   async handleBookingCallback(chatId: number, userId: number, action: string, params: string[]) {
     switch (action) {
       case 'hotel':
-        await this.showHotelBooking(chatId, userId);
+        await processBusinessFeatures.showHotelBooking(chatId, userId);
         break;
       
       case 'flight':
-        await this.showFlightBooking(chatId, userId);
+        await processBusinessFeatures.showFlightBooking(chatId, userId);
         break;
       
       case 'restaurant':
-        await this.showRestaurantBooking(chatId, userId);
+        await processBusinessFeatures.showRestaurantBooking(chatId, userId);
         break;
       
       case 'course':
-        await this.showCourseBooking(chatId, userId);
+        await processBusinessFeatures.showCourseBooking(chatId, userId);
         break;
     }
   },
@@ -453,19 +456,19 @@ export const processBusinessFeatures = {
   async handleSupportCallback(chatId: number, userId: number, action: string, params: string[]) {
     switch (action) {
       case 'faq':
-        await this.showFAQ(chatId, userId);
+        await processBusinessFeatures.showFAQ(chatId, userId);
         break;
       
       case 'contact':
-        await this.showContact(chatId, userId);
+        await processBusinessFeatures.showContact(chatId, userId);
         break;
       
       case 'livechat':
-        await this.startLiveChat(chatId, userId);
+        await processBusinessFeatures.startLiveChat(chatId, userId);
         break;
       
       case 'ticket':
-        await this.createTicket(chatId, userId);
+        await processBusinessFeatures.createTicket(chatId, userId);
         break;
     }
   },

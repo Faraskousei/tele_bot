@@ -1,4 +1,4 @@
-import { collection, doc, setDoc, getDoc, addDoc, query, where, getDocs, orderBy, limit, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { sendMessage } from '../telegram';
 import { updateUserSession } from '../bot-handlers';

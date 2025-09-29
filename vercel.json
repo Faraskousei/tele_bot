@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/telegram/webhook/route.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "TELEGRAM_BOT_TOKEN": "8311046872:AAFJz-zTPe4X49YWyibejV4-ydDYl_jPdMw"
+  }
+}

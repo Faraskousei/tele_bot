@@ -1,7 +1,8 @@
-import { collection, doc, setDoc, getDoc, addDoc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { sendMessage } from '../telegram';
 import { updateUserSession } from '../bot-handlers';
+import { TMDBService } from '../tmdb';
 
 export const processEntertainmentFeatures = {
   async handleGameCommand(chatId: number, userId: number) {
@@ -354,5 +355,131 @@ export const processEntertainmentFeatures = {
     };
 
     await sendMessage(chatId, memeText, { reply_markup: keyboard });
+  },
+
+  // Movie/Music Info with TMDB API
+  async handleMovieCommand(chatId: number, userId: number, text: string) {
+    const query = text.replace('/movie', '').trim();
+    
+    if (!query) {
+      const keyboard = {
+        inline_keyboard: [
+          [
+            { text: '🎬 Film Populer', callback_data: 'movie:popular' },
+            { text: '📺 TV Show Populer', callback_data: 'movie:popular_tv' }
+          ],
+          [
+            { text: '🔥 Trending Film', callback_data: 'movie:trending' },
+            { text: '🔥 Trending TV', callback_data: 'movie:trending_tv' }
+          ]
+        ]
+      };
+
+      await sendMessage(chatId, `
+🎬 **Movie & TV Info Bot**
+
+Gunakan: /movie <judul film/tv show>
+
+Contoh:
+/movie Avatar
+/movie The Matrix
+/movie Breaking Bad
+
+Atau pilih opsi di bawah untuk melihat yang populer!
+      `, { reply_markup: keyboard });
+      return;
+    }
+
+    try {
+      const movieInfo = await TMDBService.searchMovie(query);
+      
+      if (movieInfo) {
+        const message = `
+🎬 **${movieInfo.title}** (${movieInfo.releaseYear})
+
+📊 **Rating:** ${movieInfo.rating}/10 ⭐
+🎭 **Genre:** ${movieInfo.genres.join(', ')}
+⏱️ **Durasi:** ${movieInfo.runtime} menit
+🌍 **Bahasa:** ${movieInfo.originalLanguage}
+
+📝 **Sinopsis:**
+${movieInfo.overview}
+
+🔗 **TMDB:** https://themoviedb.org/movie/${movieInfo.id}
+        `;
+        
+        await sendMessage(chatId, message);
+      } else {
+        await sendMessage(chatId, `
+❌ Film "${query}" tidak ditemukan.
+
+Coba dengan judul yang lebih spesifik atau cek ejaan.
+        `);
+      }
+    } catch (error) {
+      console.error('Error fetching movie info:', error);
+      await sendMessage(chatId, `
+❌ Gagal mengambil informasi film.
+
+Silakan coba lagi nanti atau gunakan judul yang berbeda.
+      `);
+    }
+  },
+
+  async handleMovieCallback(chatId: number, userId: number, action: string, params: string[]) {
+    try {
+      switch (action) {
+        case 'popular':
+          const popularMovies = await TMDBService.getPopularMovies(1);
+          let message = '🎬 **Film Populer Saat Ini:**\n\n';
+          
+          popularMovies.slice(0, 5).forEach((movie: any, index: number) => {
+            message += `${index + 1}. **${movie.title}** (${new Date(movie.release_date).getFullYear()})\n`;
+            message += `   ⭐ ${movie.vote_average}/10\n\n`;
+          });
+          
+          await sendMessage(chatId, message);
+          break;
+
+        case 'popular_tv':
+          const popularTV = await TMDBService.getPopularTVShows(1);
+          let tvMessage = '📺 **TV Show Populer Saat Ini:**\n\n';
+          
+          popularTV.slice(0, 5).forEach((tv: any, index: number) => {
+            tvMessage += `${index + 1}. **${tv.name}** (${new Date(tv.first_air_date).getFullYear()})\n`;
+            tvMessage += `   ⭐ ${tv.vote_average}/10\n\n`;
+          });
+          
+          await sendMessage(chatId, tvMessage);
+          break;
+
+        case 'trending':
+          const trendingMovies = await TMDBService.getTrendingMovies();
+          let trendingMessage = '🔥 **Film Trending Minggu Ini:**\n\n';
+          
+          trendingMovies.slice(0, 5).forEach((movie: any, index: number) => {
+            trendingMessage += `${index + 1}. **${movie.title}**\n`;
+            trendingMessage += `   ⭐ ${movie.vote_average}/10\n\n`;
+          });
+          
+          await sendMessage(chatId, trendingMessage);
+          break;
+
+        case 'trending_tv':
+          const trendingTV = await TMDBService.getTrendingTVShows();
+          let trendingTVMessage = '🔥 **TV Show Trending Minggu Ini:**\n\n';
+          
+          trendingTV.slice(0, 5).forEach((tv: any, index: number) => {
+            trendingTVMessage += `${index + 1}. **${tv.name}**\n`;
+            trendingTVMessage += `   ⭐ ${tv.vote_average}/10\n\n`;
+          });
+          
+          await sendMessage(chatId, trendingTVMessage);
+          break;
+      }
+    } catch (error) {
+      console.error('Error in handleMovieCallback:', error);
+      await sendMessage(chatId, '❌ Gagal mengambil data. Silakan coba lagi.');
+    }
   }
 };

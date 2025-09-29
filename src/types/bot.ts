@@ -1,10 +1,48 @@
+export interface TelegramUpdate {
+  update_id: number;
+  message?: TelegramMessage;
+  callback_query?: TelegramCallbackQuery;
+}
+
+export interface TelegramMessage {
+  message_id: number;
+  from: TelegramUser;
+  chat: TelegramChat;
+  date: number;
+  text?: string;
+}
+
+export interface TelegramUser {
+  id: number;
+  is_bot: boolean;
+  first_name: string;
+  last_name?: string;
+  username?: string;
+  language_code?: string;
+}
+
+export interface TelegramChat {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  type: string;
+}
+
+export interface TelegramCallbackQuery {
+  id: string;
+  from: TelegramUser;
+  message: TelegramMessage;
+  data: string;
+}
+
 export interface BotFeature {
   id: string;
   name: string;
   description: string;
   category: BotCategory;
   enabled: boolean;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,7 +83,7 @@ export interface BotSession {
   userId: number;
   chatId: number;
   state: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -84,6 +122,6 @@ export interface UserProgress {
   featureId: string;
   progress: number;
   completed: boolean;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   updatedAt: Date;
 }

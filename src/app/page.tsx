@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Badge } from '@/components/ui';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { Card, Button } from '@/components/ui';
 import { FeatureCard } from '@/components/FeatureCard';
 import { CategoryTabs } from '@/components/CategoryTabs';
 import { BotFeature, BotCategory } from '@/types/bot';
@@ -9,21 +10,44 @@ import { defaultFeatures } from '@/lib/data/features';
 import { Settings, BarChart3, Users, Bot } from 'lucide-react';
 
 export default function HomePage() {
-  const [features, setFeatures] = useState<BotFeature[]>([]);
+  const { user, loading } = useAuth();
+  const [features, setFeatures] = useState<BotFeature[]>(defaultFeatures);
   const [activeCategory, setActiveCategory] = useState<BotCategory | 'all'>('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // Load features from localStorage or API
-    const savedFeatures = localStorage.getItem('bot-features');
-    if (savedFeatures) {
-      setFeatures(JSON.parse(savedFeatures));
-    } else {
+    // Set client flag
+    setIsClient(true);
+    
+    // Load features from localStorage
+    try {
+      const savedFeatures = localStorage.getItem('bot-features');
+      console.log('Saved features:', savedFeatures);
+      
+      if (savedFeatures) {
+        const parsed = JSON.parse(savedFeatures);
+        console.log('Parsed features:', parsed);
+        setFeatures(parsed);
+      } else {
+        console.log('No saved features, using defaults');
+        setFeatures(defaultFeatures);
+        localStorage.setItem('bot-features', JSON.stringify(defaultFeatures));
+      }
+    } catch (error) {
+      console.error('Error loading features:', error);
       setFeatures(defaultFeatures);
-      localStorage.setItem('bot-features', JSON.stringify(defaultFeatures));
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    // Redirect to login if not authenticated (only on client side)
+    if (isClient && !loading && !user) {
+      window.location.href = '/login';
+    }
+  }, [isClient, loading, user]);
 
   const handleToggleFeature = (featureId: string) => {
     const updatedFeatures = features.map(feature => 
@@ -31,38 +55,56 @@ export default function HomePage() {
         ? { ...feature, enabled: !feature.enabled, updatedAt: new Date() }
         : feature
     );
+    
     setFeatures(updatedFeatures);
-    localStorage.setItem('bot-features', JSON.stringify(updatedFeatures));
+    
+    // Save to localStorage only on client side
+    if (isClient) {
+      localStorage.setItem('bot-features', JSON.stringify(updatedFeatures));
+    }
   };
 
   const handleConfigureFeature = (featureId: string) => {
-    // Open configuration modal or navigate to settings page
     console.log('Configure feature:', featureId);
-    alert(`Konfigurasi untuk fitur ${featureId} akan segera tersedia!`);
+    // TODO: Implement feature configuration modal
   };
+
+  // Show loading while checking authentication or loading features
+  if (loading || isLoading) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Loading...
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated (client-side only)
+  if (isClient && !user) {
+    return null; // Will redirect via useEffect
+  }
 
   const filteredFeatures = activeCategory === 'all' 
     ? features 
     : features.filter(feature => feature.category === activeCategory);
+    
+  console.log('Active category:', activeCategory);
+  console.log('Features:', features);
+  console.log('Filtered features:', filteredFeatures);
 
   const enabledCount = features.filter(f => f.enabled).length;
   const totalUsers = 1247; // Mock data
   const totalMessages = 15420; // Mock data
   const uptime = '99.9%'; // Mock data
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Memuat platform bot...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,13 +119,24 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">
+                Halo, {user?.email}
+              </span>
               <Button variant="outline" size="sm">
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
-              <Button variant="primary" size="sm">
-                Dashboard
-              </Button>
+              <a href="/dashboard">
+                <Button variant="primary" size="sm">
+                  Dashboard
+                </Button>
+              </a>
+              <a href="/profile">
+                <Button variant="outline" size="sm">
+                  <Users className="w-4 h-4 mr-2" />
+                  Profil
+                </Button>
+              </a>
             </div>
           </div>
         </div>
@@ -151,29 +204,32 @@ export default function HomePage() {
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredFeatures.map((feature) => (
-            <FeatureCard
-              key={feature.id}
-              feature={feature}
-              onToggle={handleToggleFeature}
-              onConfigure={handleConfigureFeature}
-            />
-          ))}
+          {filteredFeatures.length > 0 ? (
+            filteredFeatures.map((feature) => (
+              <FeatureCard
+                key={feature.id}
+                feature={feature}
+                onToggle={handleToggleFeature}
+                onConfigure={handleConfigureFeature}
+              />
+            ))
+          ) : (
+            <div className="col-span-full">
+              <Card className="text-center py-12">
+                <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <Bot className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Tidak ada fitur tersedia
+                </h3>
+                <p className="text-gray-600">
+                  Fitur untuk kategori {activeCategory} belum tersedia atau sedang dimuat.
+                </p>
+              </Card>
+            </div>
+          )}
         </div>
 
-        {filteredFeatures.length === 0 && (
-          <div className="text-center py-12">
-            <div className="bg-gray-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <Bot className="w-8 h-8 text-gray-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Tidak ada fitur di kategori ini
-            </h3>
-            <p className="text-gray-600">
-              Fitur untuk kategori {activeCategory} belum tersedia.
-            </p>
-          </div>
-        )}
 
         {/* Quick Actions */}
         <div className="mt-12">

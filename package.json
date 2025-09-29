@@ -22,6 +22,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toast": "^1.2.15",
     "@types/node-telegram-bot-api": "^0.64.11",
+    "autoprefixer": "^10.4.21",
     "firebase": "^12.3.0",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",

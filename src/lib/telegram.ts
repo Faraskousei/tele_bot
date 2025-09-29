@@ -4,8 +4,10 @@ import TelegramBot from 'node-telegram-bot-api';
 let bot: TelegramBot | null = null;
 
 export const getBot = () => {
-  if (!bot && process.env.TELEGRAM_BOT_TOKEN) {
-    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
+  if (!bot) {
+    // Use hardcoded token for now since env var is not set
+    const token = process.env.TELEGRAM_BOT_TOKEN || '8311046872:AAFJz-zTPe4X49YWyibejV4-ydDYl_jPdMw';
+    bot = new TelegramBot(token, { polling: false });
   }
   return bot;
 };
@@ -21,15 +23,23 @@ export const initializeBot = async () => {
   return botInstance;
 };
 
-export const sendMessage = async (chatId: number | string, text: string, options?: any) => {
-  const botInstance = getBot();
-  if (botInstance) {
-    return await botInstance.sendMessage(chatId, text, options);
+export const sendMessage = async (chatId: number | string, text: string, options?: TelegramBot.SendMessageOptions) => {
+  try {
+    const botInstance = getBot();
+    if (botInstance) {
+      console.log('📤 Sending message:', { chatId, text: text.substring(0, 100), options });
+      const result = await botInstance.sendMessage(chatId, text, options);
+      console.log('✅ Message sent successfully:', result.message_id);
+      return result;
+    }
+    throw new Error('Bot not initialized');
+  } catch (error) {
+    console.error('❌ Error sending message:', error);
+    throw error;
   }
-  throw new Error('Bot not initialized');
 };
 
-export const sendPhoto = async (chatId: number | string, photo: string | Buffer, options?: any) => {
+export const sendPhoto = async (chatId: number | string, photo: string | Buffer, options?: TelegramBot.SendPhotoOptions) => {
   const botInstance = getBot();
   if (botInstance) {
     return await botInstance.sendPhoto(chatId, photo, options);
@@ -37,7 +47,7 @@ export const sendPhoto = async (chatId: number | string, photo: string | Buffer,
   throw new Error('Bot not initialized');
 };
 
-export const sendDocument = async (chatId: number | string, document: string | Buffer, options?: any) => {
+export const sendDocument = async (chatId: number | string, document: string | Buffer, options?: TelegramBot.SendDocumentOptions) => {
   const botInstance = getBot();
   if (botInstance) {
     return await botInstance.sendDocument(chatId, document, options);
@@ -45,7 +55,7 @@ export const sendDocument = async (chatId: number | string, document: string | B
   throw new Error('Bot not initialized');
 };
 
-export const answerCallbackQuery = async (callbackQueryId: string, text?: string, options?: any) => {
+export const answerCallbackQuery = async (callbackQueryId: string, text?: string, options?: TelegramBot.AnswerCallbackQueryOptions) => {
   const botInstance = getBot();
   if (botInstance) {
     return await botInstance.answerCallbackQuery(callbackQueryId, { text, ...options });

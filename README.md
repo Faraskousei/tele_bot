@@ -89,8 +89,8 @@ Platform manajemen bot Telegram yang terintegrasi dengan berbagai fitur sesuai k
    - Copy token bot ke `.env.local`
 
 6. **Run development server**
-   ```bash
-   npm run dev
+```bash
+npm run dev
    ```
 
 7. **Build untuk production**

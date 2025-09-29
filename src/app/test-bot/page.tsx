@@ -1,9 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Button, Input } from '@/components/ui';
-import { Bot, Send, MessageSquare, User, Bot as BotIcon } from 'lucide-react';
-import Link from 'next/link';
 
 interface Message {
   id: string;
@@ -16,7 +13,7 @@ export default function TestBotPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Halo! Saya adalah bot multi-fungsi. Ketik /help untuk melihat daftar perintah yang tersedia.',
+      text: 'Selamat datang di Bot Platform!\n\nSaya dapat membantu Anda dengan berbagai tugas:\n\n📚 Pendidikan & Pembelajaran\n📋 Manajemen & Produktivitas\n🎮 Hiburan\n💼 Bisnis & Layanan\n⚙️ Teknis & Developer\n\nKetik /help untuk melihat daftar lengkap perintah.',
       sender: 'bot',
       timestamp: new Date()
     }
@@ -95,13 +92,16 @@ export default function TestBotPage() {
       if (!textToTranslate) {
         return 'Silakan ketik teks yang ingin diterjemahkan.\nContoh: /translate Hello world';
       }
-      return `🌐 **Terjemahan:**\n\n📝 **Original:** ${textToTranslate}\n🔄 **Bahasa Indonesia:** [Terjemahan akan tersedia dengan integrasi Google Translate API]`;
+      return `🌐 **Terjemahan:**
+
+📝 **Original:** ${textToTranslate}
+🔄 **Bahasa Indonesia:** [Terjemahan akan tersedia dengan integrasi Google Translate API]`;
     }
     
     if (lowerInput.includes('/todo')) {
       return `📋 **Manajemen To-Do List**
 
-Pilih aksi yang ingin Anda lakukan:
+Fitur-fitur yang dapat Anda lakukan:
 • Tambah Todo
 • Lihat Todo
 • Selesaikan Todo
@@ -194,64 +194,110 @@ Ketik /help untuk melihat daftar perintah yang tersedia, atau coba salah satu pe
     }
   };
 
+  const quickCommands = [
+    { command: '/start', label: '/start', icon: '🤖' },
+    { command: '/help', label: '/help', icon: '❓' },
+    { command: '/translate Hello', label: '/translate', icon: '🌐' },
+    { command: '/todo', label: '/todo', icon: '📋' },
+    { command: '/quiz', label: '/quiz', icon: '🧠' },
+    { command: '/game', label: '/game', icon: '🎮' },
+    { command: '/shop', label: '/shop', icon: '🛍️' },
+    { command: '/monitor', label: '/monitor', icon: '⚙️' }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <Link href="/">
-                <Button variant="ghost" size="sm">
-                  ← Back
-                </Button>
-              </Link>
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <BotIcon className="w-8 h-8 text-white" />
+      <header style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <a href="/" style={{ 
+                padding: '0.5rem 1rem', 
+                backgroundColor: '#f3f4f6', 
+                color: '#374151', 
+                textDecoration: 'none', 
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                fontWeight: '500'
+              }}>
+                ← Back
+              </a>
+              <div style={{ backgroundColor: '#2563eb', padding: '0.5rem', borderRadius: '0.5rem' }}>
+                <span style={{ color: 'white', fontSize: '1.5rem' }}>🤖</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Test Bot</h1>
-                <p className="text-sm text-gray-600">Simulasi interaksi dengan bot Telegram</p>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', margin: 0 }}>
+                  Test Bot
+                </h1>
+                <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>
+                  Simulasi interaksi dengan bot Telegram
+                </p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-600">Bot Online</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ width: '0.5rem', height: '0.5rem', backgroundColor: '#10b981', borderRadius: '50%' }}></div>
+                <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>Bot Online</span>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
         {/* Chat Interface */}
-        <Card className="h-[600px] flex flex-col">
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div style={{ 
+          backgroundColor: 'white', 
+          borderRadius: '0.5rem', 
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+          height: '600px',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          <div style={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            padding: '1.5rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem'
+          }}>
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                style={{
+                  display: 'flex',
+                  justifyContent: message.sender === 'user' ? 'flex-end' : 'flex-start'
+                }}
               >
                 <div
-                  className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.sender === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-900'
-                  }`}
+                  style={{
+                    maxWidth: '75%',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '1rem',
+                    backgroundColor: message.sender === 'user' ? '#2563eb' : '#f3f4f6',
+                    color: message.sender === 'user' ? 'white' : '#111827'
+                  }}
                 >
-                  <div className="flex items-start space-x-2">
-                    {message.sender === 'bot' && (
-                      <Bot className="w-4 h-4 mt-1 flex-shrink-0" />
-                    )}
-                    {message.sender === 'user' && (
-                      <User className="w-4 h-4 mt-1 flex-shrink-0" />
-                    )}
-                    <div className="flex-1">
-                      <p className="text-sm whitespace-pre-line">{message.text}</p>
-                      <p className={`text-xs mt-1 ${
-                        message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
-                      }`}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1rem', marginTop: '0.125rem' }}>
+                      {message.sender === 'bot' ? '🤖' : '👤'}
+                    </span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ 
+                        fontSize: '0.875rem', 
+                        margin: 0,
+                        whiteSpace: 'pre-line',
+                        lineHeight: '1.4'
+                      }}>
+                        {message.text}
+                      </p>
+                      <p style={{ 
+                        fontSize: '0.75rem', 
+                        marginTop: '0.25rem',
+                        color: message.sender === 'user' ? 'rgba(255,255,255,0.8)' : '#6b7280'
+                      }}>
                         {message.timestamp.toLocaleTimeString('id-ID', {
                           hour: '2-digit',
                           minute: '2-digit'
@@ -264,14 +310,38 @@ Ketik /help untuk melihat daftar perintah yang tersedia, atau coba salah satu pe
             ))}
             
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 text-gray-900 max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <Bot className="w-4 h-4" />
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={{
+                  backgroundColor: '#f3f4f6',
+                  color: '#111827',
+                  maxWidth: '75%',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '1rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1rem' }}>🤖</span>
+                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                      <div style={{ 
+                        width: '0.5rem', 
+                        height: '0.5rem', 
+                        backgroundColor: '#9ca3af', 
+                        borderRadius: '50%',
+                        animation: 'bounce 1s infinite'
+                      }}></div>
+                      <div style={{ 
+                        width: '0.5rem', 
+                        height: '0.5rem', 
+                        backgroundColor: '#9ca3af', 
+                        borderRadius: '50%',
+                        animation: 'bounce 1s infinite 0.1s'
+                      }}></div>
+                      <div style={{ 
+                        width: '0.5rem', 
+                        height: '0.5rem', 
+                        backgroundColor: '#9ca3af', 
+                        borderRadius: '50%',
+                        animation: 'bounce 1s infinite 0.2s'
+                      }}></div>
                     </div>
                   </div>
                 </div>
@@ -280,152 +350,177 @@ Ketik /help untuk melihat daftar perintah yang tersedia, atau coba salah satu pe
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-gray-200 p-4">
-            <div className="flex space-x-2">
-              <Input
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ketik pesan atau perintah (contoh: /help, /start, /todo)..."
-                className="flex-1"
-              />
-              <Button 
-                onClick={handleSendMessage}
-                disabled={!inputText.trim() || isLoading}
-                size="md"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
+          <div style={{ 
+            borderTop: '1px solid #e5e7eb', 
+            padding: '1rem',
+            display: 'flex',
+            gap: '0.5rem'
+          }}>
+            <input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ketik pesan atau perintah (contoh: /help, /start, /todo)..."
+              style={{
+                flex: 1,
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                fontSize: '0.875rem',
+                outline: 'none'
+              }}
+            />
+            <button 
+              onClick={handleSendMessage}
+              disabled={!inputText.trim() || isLoading}
+              style={{
+                padding: '0.75rem 1rem',
+                backgroundColor: inputText.trim() && !isLoading ? '#2563eb' : '#9ca3af',
+                color: 'white',
+                border: 'none',
+                borderRadius: '0.375rem',
+                cursor: inputText.trim() && !isLoading ? 'pointer' : 'not-allowed',
+                fontSize: '0.875rem',
+                fontWeight: '500'
+              }}
+            >
+              📤
+            </button>
           </div>
-        </Card>
+        </div>
 
         {/* Quick Commands */}
-        <div className="mt-6">
-          <Card title="Quick Commands" description="Klik untuk mengirim perintah dengan cepat">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInputText('/start')}
-                className="justify-start"
-              >
-                <Bot className="w-4 h-4 mr-2" />
-                /start
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInputText('/help')}
-                className="justify-start"
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                /help
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInputText('/translate Hello')}
-                className="justify-start"
-              >
-                🌐 /translate
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInputText('/todo')}
-                className="justify-start"
-              >
-                📋 /todo
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInputText('/quiz')}
-                className="justify-start"
-              >
-                🧠 /quiz
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInputText('/game')}
-                className="justify-start"
-              >
-                🎮 /game
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInputText('/shop')}
-                className="justify-start"
-              >
-                🛍️ /shop
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInputText('/monitor')}
-                className="justify-start"
-              >
-                ⚙️ /monitor
-              </Button>
+        <div style={{ marginTop: '1.5rem' }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            padding: '1.5rem'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827', margin: '0 0 0.5rem 0' }}>
+              Quick Commands
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 1rem 0' }}>
+              Klik untuk mengirim perintah dengan cepat
+            </p>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
+              gap: '0.75rem' 
+            }}>
+              {quickCommands.map((cmd, index) => (
+                <button
+                  key={index}
+                  onClick={() => setInputText(cmd.command)}
+                  style={{
+                    padding: '0.75rem',
+                    backgroundColor: '#f9fafb',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.375rem',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    color: '#374151',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    justifyContent: 'flex-start',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f3f4f6';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = '#f9fafb';
+                  }}
+                >
+                  <span>{cmd.icon}</span>
+                  {cmd.label}
+                </button>
+              ))}
             </div>
-          </Card>
+          </div>
         </div>
 
         {/* Bot Features Info */}
-        <div className="mt-6">
-          <Card title="Bot Features" description="Fitur-fitur yang tersedia dalam bot">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-2">📚 Pendidikan</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• /translate - Terjemahan teks</li>
-                  <li>• /quiz - Kuis interaktif</li>
-                  <li>• /notes - Catatan pribadi</li>
-                </ul>
-              </div>
-              
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-2">📋 Manajemen</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• /todo - To-do list</li>
-                  <li>• /expense - Tracking pengeluaran</li>
-                  <li>• /group - Manajemen grup</li>
-                </ul>
-              </div>
-              
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-2">🎮 Hiburan</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• /game - Permainan sederhana</li>
-                  <li>• /movie - Info film</li>
-                  <li>• /meme - Generator meme</li>
-                </ul>
-              </div>
-              
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-2">💼 Bisnis</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• /shop - Toko online</li>
-                  <li>• /booking - Sistem reservasi</li>
-                  <li>• /support - Customer support</li>
-                </ul>
-              </div>
-              
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-2">⚙️ Teknis</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• /github - GitHub notifier</li>
-                  <li>• /monitor - Server monitoring</li>
-                  <li>• /ai - AI assistant</li>
-                </ul>
-              </div>
+        <div style={{ marginTop: '1.5rem' }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            padding: '1.5rem'
+          }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827', margin: '0 0 0.5rem 0' }}>
+              Bot Features
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0 0 1rem 0' }}>
+              Fitur-fitur yang tersedia dalam bot
+            </p>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+              gap: '1rem' 
+            }}>
+              {[
+                {
+                  title: '📚 Pendidikan',
+                  features: ['/translate - Terjemahan teks', '/quiz - Kuis interaktif', '/notes - Catatan pribadi']
+                },
+                {
+                  title: '📋 Manajemen',
+                  features: ['/todo - To-do list', '/expense - Tracking pengeluaran', '/group - Manajemen grup']
+                },
+                {
+                  title: '🎮 Hiburan',
+                  features: ['/game - Permainan sederhana', '/movie - Info film', '/meme - Generator meme']
+                },
+                {
+                  title: '💼 Bisnis',
+                  features: ['/shop - Toko online', '/booking - Sistem reservasi', '/support - Customer support']
+                },
+                {
+                  title: '⚙️ Teknis',
+                  features: ['/github - GitHub notifier', '/monitor - Server monitoring', '/ai - AI assistant']
+                }
+              ].map((category, index) => (
+                <div key={index} style={{
+                  padding: '1rem',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  backgroundColor: '#f9fafb'
+                }}>
+                  <h4 style={{ fontSize: '1rem', fontWeight: '600', color: '#111827', margin: '0 0 0.5rem 0' }}>
+                    {category.title}
+                  </h4>
+                  <ul style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0, paddingLeft: '1rem' }}>
+                    {category.features.map((feature, idx) => (
+                      <li key={idx} style={{ marginBottom: '0.25rem' }}>{feature}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-          </Card>
+          </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes bounce {
+          0%, 20%, 53%, 80%, 100% {
+            transform: translate3d(0,0,0);
+          }
+          40%, 43% {
+            transform: translate3d(0,-8px,0);
+          }
+          70% {
+            transform: translate3d(0,-4px,0);
+          }
+          90% {
+            transform: translate3d(0,-2px,0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

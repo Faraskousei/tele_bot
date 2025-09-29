@@ -111,9 +111,10 @@ export const defaultFeatures: BotFeature[] = [
     name: 'Music / Film Info Bot',
     description: 'Mencari lirik lagu, rekomendasi musik, atau informasi film dari TMDB API.',
     category: BotCategory.ENTERTAINMENT,
-    enabled: false,
+    enabled: true,
     settings: {
-      tmdbApiKey: '',
+      tmdbApiKey: 'db10591f98182b1ca805e5ee581d820c',
+      tmdbReadAccessToken: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkYjEwNTkxZjI4MTgyYjFjYWI4MDVlNWU1ODEwZDBjIiwic3ViIjoiNjMTc1OTExOTc2MjMyNTIsImlzcyI6InNlY3VyZSIsImV4cCI6MTcwOTYyOTBhNjJkZWMyMSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.l9FbbJ6xmaGJ2EHW39QkDuMASTH8s5kwVtO0wcXffzk',
       includePosters: true,
       language: 'id'
     },
