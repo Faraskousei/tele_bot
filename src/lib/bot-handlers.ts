@@ -185,22 +185,29 @@ async function handleRegularMessage(chatId: number, userId: number, text: string
 }
 
 async function handleRealTimeReply(chatId: number, userId: number, text: string) {
-  const lowerText = text.toLowerCase();
-  
-  // Greetings detection
-  if (lowerText.includes('halo') || lowerText.includes('hai') || lowerText.includes('hello') || 
-      lowerText.includes('hi') || lowerText.includes('pagi') || lowerText.includes('siang') || 
-      lowerText.includes('sore') || lowerText.includes('malam')) {
-    await sendMessage(chatId, `👋 Halo! Senang bertemu dengan Anda!\n\nSaya siap membantu. Ketik /help untuk melihat daftar perintah yang tersedia.`);
-    return;
-  }
+  try {
+    const lowerText = text.toLowerCase();
+    
+    // Greetings detection
+    if (lowerText.includes('halo') || lowerText.includes('hai') || lowerText.includes('hello') || 
+        lowerText.includes('hi') || lowerText.includes('pagi') || lowerText.includes('siang') || 
+        lowerText.includes('sore') || lowerText.includes('malam')) {
+      const result = await sendMessage(chatId, `👋 Halo! Senang bertemu dengan Anda!\n\nSaya siap membantu. Ketik /help untuk melihat daftar perintah yang tersedia.`);
+      if (!result) {
+        console.error('❌ Failed to send greeting message to chatId:', chatId);
+      }
+      return;
+    }
 
-  // Question detection
-  if (lowerText.includes('apa') || lowerText.includes('bagaimana') || lowerText.includes('kapan') || 
-      lowerText.includes('dimana') || lowerText.includes('siapa') || lowerText.includes('mengapa')) {
-    await sendMessage(chatId, `🤔 Pertanyaan yang menarik! Saya akan mencoba membantu.\n\nUntuk pertanyaan spesifik, Anda bisa menggunakan:\n• /translate untuk terjemahan\n• /quiz untuk kuis\n• /ai untuk bantuan AI\n\nAtau ketik /help untuk melihat semua fitur.`);
-    return;
-  }
+    // Question detection
+    if (lowerText.includes('apa') || lowerText.includes('bagaimana') || lowerText.includes('kapan') || 
+        lowerText.includes('dimana') || lowerText.includes('siapa') || lowerText.includes('mengapa')) {
+      const result = await sendMessage(chatId, `🤔 Pertanyaan yang menarik! Saya akan mencoba membantu.\n\nUntuk pertanyaan spesifik, Anda bisa menggunakan:\n• /translate untuk terjemahan\n• /quiz untuk kuis\n• /ai untuk bantuan AI\n\nAtau ketik /help untuk melihat semua fitur.`);
+      if (!result) {
+        console.error('❌ Failed to send question response to chatId:', chatId);
+      }
+      return;
+    }
 
   // Thank you detection
   if (lowerText.includes('terima kasih') || lowerText.includes('makasih') || lowerText.includes('thanks')) {
@@ -265,8 +272,14 @@ async function handleRealTimeReply(chatId: number, userId: number, text: string)
     return;
   }
 
-  // Default intelligent response
-  await sendMessage(chatId, `🤖 Terima kasih atas pesannya! Saya memahami bahwa Anda berkata: "${text}"\n\nSaya siap membantu dengan berbagai fitur. Coba ketik:\n• /help - Lihat semua fitur\n• /start - Mulai dari awal\n• /translate <teks> - Terjemahan\n• /todo - Manajemen tugas\n\nAtau ajukan pertanyaan spesifik!`);
+    // Default intelligent response
+    const result = await sendMessage(chatId, `🤖 Terima kasih atas pesannya! Saya memahami bahwa Anda berkata: "${text}"\n\nSaya siap membantu dengan berbagai fitur. Coba ketik:\n• /help - Lihat semua fitur\n• /start - Mulai dari awal\n• /translate <teks> - Terjemahan\n• /todo - Manajemen tugas\n\nAtau ajukan pertanyaan spesifik!`);
+    if (!result) {
+      console.error('❌ Failed to send default response to chatId:', chatId);
+    }
+  } catch (error) {
+    console.error('❌ Error in handleRealTimeReply:', error);
+  }
 }
 
 async function sendWelcomeMessage(chatId: number) {

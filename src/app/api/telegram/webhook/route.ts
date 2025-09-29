@@ -29,10 +29,12 @@ export async function POST(request: NextRequest) {
       console.error('Failed to send error message:', sendError);
     }
     
+    // Return success to prevent Telegram from retrying
     return NextResponse.json({ 
-      error: 'Internal server error', 
+      ok: true, 
+      error: 'Processed with errors',
       details: error instanceof Error ? error.message : 'Unknown error' 
-    }, { status: 500 });
+    });
   }
 }
 

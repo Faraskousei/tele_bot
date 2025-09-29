@@ -27,6 +27,12 @@ export const sendMessage = async (chatId: number | string, text: string, options
   try {
     const botInstance = getBot();
     if (botInstance) {
+      // Validate chatId
+      if (!chatId || chatId === 0) {
+        console.error('❌ Invalid chatId:', chatId);
+        return null;
+      }
+      
       console.log('📤 Sending message:', { chatId, text: text.substring(0, 100), options });
       const result = await botInstance.sendMessage(chatId, text, options);
       console.log('✅ Message sent successfully:', result.message_id);
@@ -35,7 +41,8 @@ export const sendMessage = async (chatId: number | string, text: string, options
     throw new Error('Bot not initialized');
   } catch (error) {
     console.error('❌ Error sending message:', error);
-    throw error;
+    // Don't throw error to prevent webhook failure
+    return null;
   }
 };
 
